@@ -53,38 +53,7 @@ void counter(unsigned char direction){
 	}
 	
 	/* Set LEDs based on current value of count */
-	switch(count){
-		case 0:
-			GPIOC->ODR = 0x00000000;
-			break;
-		case 1:
-			GPIOC->ODR = 0x00000001;
-			break;
-		case 2:
-			GPIOC->ODR = 0x00000002;
-			break;
-		case 3:
-			GPIOC->ODR = 0x00000003;
-			break;
-		case 4:
-			GPIOC->ODR = 0x00000004;
-			break;
-		case 5:
-			GPIOC->ODR = 0x00000005;
-			break;
-		case 6:
-			GPIOC->ODR = 0x00000006;
-			break;
-		case 7:
-			GPIOC->ODR = 0x00000007;
-			break;
-		case 8:
-			GPIOC->ODR = 0x00000008;
-			break;
-		case 9:
-			GPIOC->ODR = 0x00000009;
-			break;
-	}
+	GPIOC->ODR = count;
 }
 
 /*------------------------------------------------*/
