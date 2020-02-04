@@ -8,7 +8,7 @@
 
 /* Define global variables */
 int count1,count2;
-unsigned char direction;
+unsigned char direction,blueLED,greenLED;
 
 /*---------------------------------------------------*/
 /* Initialize GPIO pins used in the program */
@@ -69,6 +69,7 @@ void counter1(){
 		count1 = 0;
 	}
 	/* Set LEDs based on current value of count */
+    	GPIOC->ODR &= ~(0x0F);
 	GPIOC->ODR |= (count1 & 0x0F);
 }
 
@@ -86,6 +87,7 @@ void counter2(){
 		}
 	}
 	
+    	GPIOC->ODR &= ~(0xF0);
 	GPIOC->ODR |= (count2 & 0x0F) << 4;
 	
 }
@@ -93,18 +95,28 @@ void counter2(){
 //Interrupt Service Routine
 void EXTI0_IRQHandler(){
 	direction = 0;
-	GPIOC->BSRR = 0x0100;							//Turn on PC8
-	GPIOC->BSRR = 0x0200 << 16; 			//Turn off PC9
+	if(blueLED == 0){
+        	GPIOC->BSRR = 0x100;            //Toggle PC8
+        	blueLED = 1;
+    	}else{
+        	GPIOC->BSRR = 0x100 << 16;      //Toggle PC8
+        	blueLED = 0;
+    	}
 	EXTI->PR |= 0x001; 								//Clear pending
 	NVIC_ClearPendingIRQ(EXTI0_IRQn); //Clear pending
 }
 
 void EXTI1_IRQHandler(){
 	direction = 1;
-	GPIOC->BSRR = 0x0100 << 16;				//Turn off PC8
-	GPIOC->BSRR = 0x0200; 						//Turn on PC9
-	EXTI->PR |= 0x002; 								//Clear pending
-	NVIC_ClearPendingIRQ(EXTI1_IRQn); //Clear pending
+	if(greenLED == 0){
+        	GPIOC->BSRR = 0x200;            //Toggle PC9
+        	greenLED = 1;
+    	}else{
+        	GPIOC->BSRR = 0x200 << 16;      //Toggle PC9
+        	greenLED = 0;
+    	}
+	EXTI->PR |= 0x002; 					//Clear pending
+	NVIC_ClearPendingIRQ(EXTI1_IRQn);   //Clear pending
 }
 
 /*------------------------------------------------*/
@@ -112,12 +124,13 @@ void EXTI1_IRQHandler(){
 /*------------------------------------------------*/
 int main(void) {
 	PinSetup(); 				//Configure GPIO pins
-	InterruptSetup();		//Configure Interrupts
+	InterruptSetup();		    //Configure Interrupts
 	count1 = 0; 				//Initialize count1
 	count2 =0; 					//Initialize count2
-	direction = 1;			//Initialize direction to count up
-	
-	__enable_irq();
+	direction = 1;			    //Initialize direction to count up
+    	blueLED = 0;
+    	greenLED = 0;
+	__enable_irq();             //Enable CPU interrupts
 	
 	/* Endless loop */
 	while (1) {
