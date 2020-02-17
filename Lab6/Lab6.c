@@ -1,7 +1,7 @@
 /*====================================================*/
 /* Chris Hill & Mason Greathouse    		      */
 /* ELEC 3040/3050 - Lab 6	                      */
-/* Matrix keypad interrupts                           */
+/* Stopwatch with internal interrupts                 */
 /*====================================================*/
 
 /* Microcontroller information */
