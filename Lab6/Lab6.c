@@ -15,7 +15,7 @@ unsigned char matrix_keypad[4][4] = {{1, 2, 3, 0xA},{4, 5, 6, 0xB},{7, 8, 9, 0xC
 	
 /* Constants */
 const uint16_t psc_value = 0x1FF;
-const uint16_t arr_value = 0x199;
+const uint16_t arr_value = 0x198;
 const uint8_t clear_keypress = 0xFF;
 
 
