@@ -14,6 +14,10 @@ unsigned char keyEvent = 0;
 /* Constants */
 const uint16_t psc_value = 0x08;		//For 2.097MHZ clk, ~1ms //maybe change to E9 if not close enough. ~9x233
 const uint16_t arr_value = 0xE8;		//For 2.097MHZ clk, ~1ms
+//const uint16_t arr_value = 0x1062;		//100Hz
+//const uint16_t psc_value = 0x4;		//100Hz
+//const uint16_t psc_value = 0x1;		//10kHz
+//const uint16_t arr_value = 0x68;		//10kHz
 const uint8_t clear_keypress = 0xFF;
 
 
@@ -33,26 +37,26 @@ const int row_mask[] = {0x1, 0x2, 0x4, 0x8};
 /*---------------------------------------------------*/
 void PinSetup(){
 	/* Configure PA1 as input pins to read push button */
-	RCC->AHBENR |= 0x01; 		        // Enable GPIOA clock (bit 0)
+	RCC->AHBENR |= 0x01; 		// Enable GPIOA clock (bit 0)
 	GPIOA->MODER &= ~(0x0000000C); 	// General purpose input mode PA1
 	
 	/* Configure PA6 for AF mode for TIM10 */
 	GPIOA->MODER &= ~(0x00003000);	//Clear PA6 mode
-	GPIOA->MODER |= 0x00002000;			//Alternate Functio mode PA6
+	GPIOA->MODER |= 0x00002000;	//Alternate Functio mode PA6
 	
 	GPIOA->AFR[0] &= ~(0x0F000000); //Clear AFR for PA6
-	GPIOA->AFR[0] |= 0x03000000;		//Set AFR to be TIM10_CH1
+	GPIOA->AFR[0] |= 0x03000000;	//Set AFR to be TIM10_CH1
 	
 	/* Configure PC3-0 as output pins to drive LEDs */
-	RCC->AHBENR |= 0x04; 		        //Enable GPIOC clock (bit 2)
+	RCC->AHBENR |= 0x04; 		//Enable GPIOC clock (bit 2)
 	GPIOC->MODER &= ~(0x000000FF); 	//Clear PC3-PC0 mode bits
-	GPIOC->MODER |= 0x00000055; 	  //General purpose output mode PC3-PC0
+	GPIOC->MODER |= 0x00000055; 	//General purpose output mode PC3-PC0
 	
 	/* KEYPAD I/O CONFIGURATION */
 	/* Configure PB7-4 as output pins to control keypad columns */
-	RCC->AHBENR |= 0x02; 		        //Enable GPIOB clock (bit 1)
-	GPIOB->MODER &= ~(0x0000FF00); 	// Clear PB7-4 mode bits for general purpose input
-	GPIOB->MODER |= 0x00005500;	    // General purpose output for PB7-4
+	RCC->AHBENR |= 0x02; 		//Enable GPIOB clock (bit 1)
+	GPIOB->MODER &= ~(0x0000FF00); 	//Clear PB7-4 mode bits for general purpose input
+	GPIOB->MODER |= 0x00005500;	// General purpose output for PB7-4
 	
 	/* Configure PB3-0 as input to read keypad rows */
 	GPIOB->MODER &= ~(0x000000FF); 	//Clear PB3-0 mode bits
@@ -69,13 +73,13 @@ void InterruptSetup(){
 	
 	EXTI->FTSR |= 0x0002;	//Set falling trigger for PA1
 	EXTI->IMR |= 0x0002; 	//Enable interrupt PA1
-	EXTI->PR |= 0x002; 	  //Clear pending
+	EXTI->PR |= 0x002; 	//Clear pending
 	
-	NVIC_EnableIRQ(EXTI1_IRQn); 		  //Enable interrupt for PA1
+	NVIC_EnableIRQ(EXTI1_IRQn); 		//Enable interrupt for PA1
 	NVIC_ClearPendingIRQ(EXTI1_IRQn);	//Clear NVIC pending for PA1
 	
-	NVIC_EnableIRQ(TIM10_IRQn);		    //Enable timer interrupt in NVIC
-	NVIC_ClearPendingIRQ(TIM10_IRQn); //Clear pending interrupt in NVIC
+	NVIC_EnableIRQ(TIM10_IRQn);		//Enable timer interrupt in NVIC
+	NVIC_ClearPendingIRQ(TIM10_IRQn); 	//Clear pending interrupt in NVIC
 }
 
 /* Timer Setup */
@@ -83,14 +87,13 @@ void TimerSetup() {
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;	//Enable TIM10
 	TIM10->PSC = psc_value;			//Set timer prescale
 	TIM10->ARR = arr_value;			//Set timer auto reload
-	TIM10->CCR1 = 0x0;					//Set compare value for duty cycle
-	//TIM10->CNT = 0;						//Timer counter compared to CCR1 for duty cycle.  Not sure if need to initialize
+	TIM10->CCR1 = 0x0;			//Set compare value for duty cycle
 	//Set up output compare for TIM10_CH1
-	TIM10->CCMR1 &= ~(0x0F);	  //Clear register. Sets to output compare
-	TIM10->CCMR1 |= 0x60;			  //Set Output Compare to PWM1 mode
+	TIM10->CCMR1 &= ~(0x0F);	//Clear register. Sets to output compare
+	TIM10->CCMR1 |= 0x60;		//Set Output Compare to PWM1 mode
 	
-	TIM10->CCER &= ~(0x03);		  //Clear CH1 CC1E and CC1P.  CC1P now Active High
-	TIM10->CCER |= 0x01;			  //Set CC1E to drive output pin
+	TIM10->CCER &= ~(0x03);		//Clear CH1 CC1E and CC1P.  CC1P now Active High
+	TIM10->CCER |= 0x01;		//Set CC1E to drive output pin
 	
 	TIM10->CR1 |= TIM_CR1_CEN;	//Enable counting on timer 10
 }
@@ -114,7 +117,7 @@ void EXTI1_IRQHandler(){
 	__disable_irq();	//Prevent other interrupts during interrupt
 	
 	for(int i = 0; i < 4; i++){
-		GPIOB->BSRR |= 0xF0;		        //Pull all columns high PB7-4
+		GPIOB->BSRR |= 0xF0;		//Pull all columns high PB7-4
 		GPIOB->BSRR |= column_mask[i];	//Pulls down column i 
 		short_delay();
 		
@@ -123,12 +126,14 @@ void EXTI1_IRQHandler(){
 			
 			if(read_row == 0){
 				keyPressed = matrix_keypad[j][i];
-				UpdateLED(keyPressed);						//Update LEDs based on key
+				if(keyPressed < 11){
+					UpdateLED(keyPressed);		//Update LEDs based on key
+				}
 				keyEvent = 1;
-				GPIOB->BSRR |= 0x00F00000;				//Ground columns. PB7-4
-				EXTI->PR |= 0x002;								//Clear pending
+				GPIOB->BSRR |= 0x00F00000;		//Ground columns. PB7-4
+				EXTI->PR |= 0x002;			//Clear pending
 				NVIC_ClearPendingIRQ(EXTI1_IRQn);	//Clear pending
-				__enable_irq();										//Re-enable interrupts
+				__enable_irq();				//Re-enable interrupts
 				return;
 			}
 		}
@@ -136,21 +141,21 @@ void EXTI1_IRQHandler(){
 	
 	//Need to add some delay for bounce
 	GPIOB->BSRR |= 0x00F00000;		//Ground columns. PB7-4
-	EXTI->PR |= 0x002; 			      //Clear pending
+	EXTI->PR |= 0x002; 			//Clear pending
 	NVIC_ClearPendingIRQ(EXTI1_IRQn);	//Clear NVIC pending
-	__enable_irq();				            //Re-enable interrupts
+	__enable_irq();				//Re-enable interrupts
 }
 
 /*------------------------------------------------*/
 /* Main program */
 /*------------------------------------------------*/
 int main(void) {
-	PinSetup();		    //Configure GPIO pins
+	PinSetup();		//Configure GPIO pins
 	InterruptSetup();	//Configure Interrupts
-	TimerSetup();		  //Configure Timer
+	TimerSetup();		//Configure Timer
 	
 	keyPressed = clear_keypress;	//Initialize keyPressed to value not on keyboard
-	GPIOB->BSRR |= 0x00F00000;	  //Ground columns. PB7-4
+	GPIOB->BSRR |= 0x00F00000;	//Ground columns. PB7-4
 	__enable_irq();             	//Enable CPU interrupts
 	
 	int dutyCycle = 0;
