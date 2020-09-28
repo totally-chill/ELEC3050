@@ -17,7 +17,7 @@ struct{
 	unsigned char display_delay;
 	const unsigned char row1[4];
 	const unsigned char row2[4];
-  const unsigned char row3[4];
+  	const unsigned char row3[4];
 	const unsigned char row4[4];
 	const unsigned char* keys[];
 }typedef keypad;
@@ -122,49 +122,49 @@ void EXTI1_IRQHandler(){
 	/* Array of masks to set/read the specific bits in BSRR/IDR */
 	//Column mask values correspond to BR bits of BSRR
 	const int column_mask[] = {0x10 << 16, 		
-														 0x20 << 16, 
-														 0x40 << 16, 
-														 0x80 << 16};
+				   0x20 << 16, 
+				   0x40 << 16, 
+				   0x80 << 16};
 	
 	//Row mask values correspond to bits of IDR
 	const int row_mask[] = {0x1,
-												  0x2,
-												  0x4,
-												  0x8};
+				0x2,
+				0x4,
+				0x8};
 	
 	for(int i = 0; i < 4; i++){
-		GPIOB->BSRR |= 0xF0;						//Pull all columns high PB7-4
+		GPIOB->BSRR |= 0xF0;		//Pull all columns high PB7-4
 		GPIOB->BSRR |= column_mask[i];	//Pulls down column i 
 		short_delay();									
 		for(int j = 0; j < 4; j++){
-			unsigned char read_row = GPIOB->IDR & row_mask[j]; //Read row j from IDR
+			unsigned char read_row = GPIOB->IDR & row_mask[j]; 	//Read row j from IDR
 			if(read_row == 0){
 				keypad1.display_delay = 4;
 				UpdateLED(keypad1.keys[j][i]);			//Set LEDs to value at Row j, Column i
-				GPIOB->BSRR |= 0x00F00000;					//Ground columns. PB7-4
-				EXTI->PR |= 0x002; 									//Clear pending
-				NVIC_ClearPendingIRQ(EXTI1_IRQn);   //Clear pending
-				__enable_irq();											//Re-enable interrupts
+				GPIOB->BSRR |= 0x00F00000;			//Ground columns. PB7-4
+				EXTI->PR |= 0x002; 				//Clear pending
+				NVIC_ClearPendingIRQ(EXTI1_IRQn);   		//Clear pending
+				__enable_irq();					//Re-enable interrupts
 				return;
 			}
 		}
 	}
 	
 	GPIOB->BSRR |= 0x00F00000;					//Ground columns. PB7-4
-	EXTI->PR |= 0x002; 									//Clear pending
+	EXTI->PR |= 0x002; 						//Clear pending
 	NVIC_ClearPendingIRQ(EXTI1_IRQn);   //Clear pending
-	__enable_irq();											//Re-enable interrupts
+	__enable_irq();							//Re-enable interrupts
 }
 
 /*------------------------------------------------*/
 /* Main program */
 /*------------------------------------------------*/
 int main(void) {
-	PinSetup(); 								//Configure GPIO pins
-	InterruptSetup();						//Configure Interrupts
-	count = 0; 									//Initialize count1
+	PinSetup(); 			//Configure GPIO pins
+	InterruptSetup();		//Configure Interrupts
+	count = 0; 			//Initialize count1
 	GPIOB->BSRR |= 0x00F00000;	//Ground columns. PB7-4
-	__enable_irq();             //Enable CPU interrupts
+	__enable_irq();             	//Enable CPU interrupts
 	
 	/* Endless loop */
 	while (1) {
